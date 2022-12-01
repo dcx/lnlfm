@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.269">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Derek Chong*">
+<meta name="author" content="Jenny Hong*">
+<meta name="author" content="Christopher D. Manning">
+<meta name="dcterms.date" content="2022-11-30">
+
+<title>Working with Label Errors in NLP</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+</head>
+
+<body class="floating slimcontent">
+
+<div id="quarto-search-results"></div>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default toc-left page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Working with Label Errors in NLP</h1>
+            <p class="subtitle lead">Label errors harm performance more than previously believed, but large pre-trained language models are highly effective at detecting them.</p>
+                      </div>
+  </div>
+    
+  <div class="quarto-title-meta-author">
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-heading">Affiliation</div>
+    
+      <div class="quarto-title-meta-contents">
+      Derek Chong* 
+    </div>
+      <div class="quarto-title-meta-contents">
+          <p class="affiliation">
+              Stanford University
+            </p>
+        </div>
+        <div class="quarto-title-meta-contents">
+      Jenny Hong* 
+    </div>
+      <div class="quarto-title-meta-contents">
+          <p class="affiliation">
+              Stanford University
+            </p>
+        </div>
+        <div class="quarto-title-meta-contents">
+      Christopher D. Manning 
+    </div>
+      <div class="quarto-title-meta-contents">
+          <p class="affiliation">
+              Stanford University
+            </p>
+        </div>
+      </div>
+
+  <div class="quarto-title-meta">
+
+        
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">November 30, 2022</p>
+      </div>
+    </div>
+    
+      
+      <div>
+      <div class="quarto-title-meta-heading">Doi</div>
+      <div class="quarto-title-meta-contents">
+        <p class="doi">
+          <a href="https://doi.org/Not Yet Assigned">Not Yet Assigned</a>
+        </p>
+      </div>
+    </div>
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#label-errors-can-be-detected-using-pre-trained-language-model-loss" id="toc-label-errors-can-be-detected-using-pre-trained-language-model-loss" class="nav-link active" data-scroll-target="#label-errors-can-be-detected-using-pre-trained-language-model-loss">Label errors can be detected using pre-trained language model loss</a></li>
+  <li><a href="#models-are-far-less-robust-to-label-errors-than-previously-believed" id="toc-models-are-far-less-robust-to-label-errors-than-previously-believed" class="nav-link" data-scroll-target="#models-are-far-less-robust-to-label-errors-than-previously-believed">Models are far less robust to label errors than previously believed</a></li>
+  <li><a href="#sec-eval" id="toc-sec-eval" class="nav-link" data-scroll-target="#sec-eval">Validation label errors can harm performance more than training label errors</a>
+  <ul class="collapse">
+  <li><a href="#test-split-errors-reduce-and-distort-measurable-performance" id="toc-test-split-errors-reduce-and-distort-measurable-performance" class="nav-link" data-scroll-target="#test-split-errors-reduce-and-distort-measurable-performance">Test split errors reduce and distort measurable performance</a></li>
+  <li><a href="#validation-split-errors-cause-poor-model-selection" id="toc-validation-split-errors-cause-poor-model-selection" class="nav-link" data-scroll-target="#validation-split-errors-cause-poor-model-selection">Validation split errors cause poor model selection</a></li>
+  </ul></li>
+  <li><a href="#sec-lnl" id="toc-sec-lnl" class="nav-link" data-scroll-target="#sec-lnl">New challenges in Learning with Noisy Labels</a>
+  <ul class="collapse">
+  <li><a href="#artificial-noise-behaves-very-differently-to-real-and-human-originated-noise" id="toc-artificial-noise-behaves-very-differently-to-real-and-human-originated-noise" class="nav-link" data-scroll-target="#artificial-noise-behaves-very-differently-to-real-and-human-originated-noise">Artificial noise behaves very differently to real and human-originated noise</a></li>
+  <li><a href="#evaluating-with-noisy-labels-is-as-challenging-as-learning-with-noisy-labels" id="toc-evaluating-with-noisy-labels-is-as-challenging-as-learning-with-noisy-labels" class="nav-link" data-scroll-target="#evaluating-with-noisy-labels-is-as-challenging-as-learning-with-noisy-labels">Evaluating with noisy labels is as challenging as learning with noisy labels</a></li>
+  </ul></li>
+  <li><a href="#conclusions-and-future-work" id="toc-conclusions-and-future-work" class="nav-link" data-scroll-target="#conclusions-and-future-work">Conclusions and future work</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block page-columns page-full" id="quarto-document-content">
+
+
+
+
+<div class="page-columns page-full"><p></p><div class="no-row-height column-margin column-container"><span class="">* Equal contribution.</span></div></div>
+<div class="page-columns page-full"><p>A label error is a mistake in assigning a label to an item within a dataset. Label errors exist in virtually all datasets, and can be introduced by a variety of sources, including human annotators, automatic labeling systems, and data collection processes. They can be difficult to detect, and result in poor model performance. </p><div class="no-row-height column-margin column-container"><span class="">Estimates of error prevalence vary between 1% and 20% <span class="citation" data-cites="redman1998impact abedjan2016detecting">(<a href="#ref-redman1998impact" role="doc-biblioref">Redman 1998</a>; <a href="#ref-abedjan2016detecting" role="doc-biblioref">Abedjan et al. 2016</a>)</span>.</span></div></div>
+<p>In our paper, “<a href="https://arxiv.org/abs/2205.12702">Detecting Label Errors by using Pre-Trained Language Models</a>”, to be published at the 2022 Conference on Empirical Methods in Natural Language Processing (<a href="https://2022.emnlp.org/">EMNLP 2022</a>), we show that label errors have much larger effects on model performance than previously believed. We then present a simple method for detecting label errors using foundation models (i.e.&nbsp;large pre-trained language models) that may improve performance in many natural language applications.</p>
+<p>In this blog post, we provide a summary of our key findings about label errors that may be of value when applying machine learning in NLP. We then discuss more general implications for LNL (Learning with Noisy Labels).</p>
+<div class="column-page">
+<div id="tbl-errors" class="anchored">
+<table class="table">
+<caption>Table&nbsp;1: Examples of label errors detected in popular NLP benchmark datasets</caption>
+<colgroup>
+<col style="width: 9%">
+<col style="width: 72%">
+<col style="width: 9%">
+<col style="width: 9%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dataset</th>
+<th>Input Text</th>
+<th>Labeled</th>
+<th>Actually</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>IMDB</td>
+<td>The ending made my heart jump up into my throat. I proceeded to leave the movie theater a little jittery. After all, it was nearly midnight. <span style="color: green;">The movie was better than I expected</span>. I don’t know why it didn’t last very long in the theaters or make as much money as anticipated. <span style="color: green;">Definitely would recommend</span>.</td>
+<td><span style="color: red;">Negative</span></td>
+<td><span style="color: green;">Positive</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<section id="label-errors-can-be-detected-using-pre-trained-language-model-loss" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="label-errors-can-be-detected-using-pre-trained-language-model-loss">Label errors can be detected using pre-trained language model loss</h2>
+<div class="page-columns page-full"><p>It is <a href="https://twitter.com/karpathy/status/1311884485676294151">known empirically</a> that data points with high loss often have unusual characteristics. We demonstrate that the loss of a fine-tuned pre-trained language model is strongly associated with likelihood of an out-of-sample data point being a label error, across a range of pre-trained language models and NLP benchmark datasets. </p><div class="no-row-height column-margin column-container"><span class="">“Out-of-sample” refers to data points which were not in the current training split. However, this does not prevent this technique from being used on training data, which can simply be divided into folds and <a href="https://en.wikipedia.org/wiki/Cross-validation_(statistics)">cross-validated</a>.</span></div></div>
+<div id="fig-perf" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="img/perf@2x.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;1: Precision-recall curves for label error detection.</figcaption><p></p>
+</figure>
+</div>
+<p>Simply evaluating a small percentage of items in descending order of loss identifies a large proportion of label errors with high precision, and more effectively than both non-pre-trained baselines, and a more complex state-of-the-art error detection framework.</p>
+<p><em>Takeaway: Checking the high loss data points of a foundation model can be useful as a quick and easy data quality health check, or for more rigorous data cleansing.</em></p>
+</section>
+<section id="models-are-far-less-robust-to-label-errors-than-previously-believed" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="models-are-far-less-robust-to-label-errors-than-previously-believed">Models are far less robust to label errors than previously believed</h2>
+<p>Deep learning is thought to be robust to massive amounts of label noise. Models have been shown to achieve high accuracy in datasets with as many as 100 noisy items for each clean item <span class="citation" data-cites="rolnick2017deep">(<a href="#ref-rolnick2017deep" role="doc-biblioref">Rolnick et al. 2017</a>)</span>, and research into learning with noisy labels focuses on label noise in the range of 20-80%. However, most studies only use simple artificial noise, in which labels are randomly flipped with no regard to the input text.</p>
+<p>We revisit the question of model robustness using a new form of realistic, human-originated label noise, which takes advantage of latent human error that exists within crowdsourced datasets.</p>
+<div id="fig-holn" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="img/holn@2x.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;2: Human-originated label errors have relationships with input text. On this part of speech task example from TweetNLP, two crowd annotators have confused <em>“advice”</em> (noun) with <em>“advise”</em> (verb). Human-originated noise would simulate a label error by applying the label <em>verb</em> instead of the label <em>noun</em>, whereas existing methods for simulating noise may select an unrealistic error such as <em>adjective</em>.</figcaption><p></p>
+</figure>
+</div>
+<p>In contrast to previous findings, we show that performance very quickly decreases as the amount of realistic label noise increases. Models learn to reproduce patterns of human error from training data with as little as 5-15% label noise.</p>
+<div class="column-body-outset">
+<div id="fig-multiplot-clean" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="img/multiplot@2x.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;3: Models are robust to simple uniform or class-based label noise, but not more realistic forms of noise.</figcaption><p></p>
+</figure>
+</div>
+</div>
+<p>We developed three noising protocols, which each simulate a different class of label error. The protocols are described in detail in <a href="https://arxiv.org/abs/2205.12702">our paper</a>. For the most challenging class of noise, <em>Crowd Majority</em>, performance degradation was roughly linear with the amount of noise applied.</p>
+<p><em>Takeaway: Significant performance improvements can be achieved by cleaning noisy training datasets.</em></p>
+</section>
+<section id="sec-eval" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-eval">Validation label errors can harm performance more than training label errors</h2>
+<p>The majority of Learning with Noisy Labels research focuses on noise in training splits, and ignores noise in evaluation splits. The existence of a clean test split is usually assumed in order to fairly evaluate techniques for learning on noisy training data. However, recent work by <span class="citation" data-cites="northcutt2021pervasive">Northcutt, Athalye, and Mueller (<a href="#ref-northcutt2021pervasive" role="doc-biblioref">2021</a>)</span> calls attention to this gap, finding that the test splits of many popular ML benchmark datasets contain label errors, and that these errors destabilize benchmark performance.</p>
+<p>We show that noise in test and validation splits has several harmful effects on model performance.</p>
+<section id="test-split-errors-reduce-and-distort-measurable-performance" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="test-split-errors-reduce-and-distort-measurable-performance">Test split errors reduce and distort measurable performance</h3>
+<p>Test splits are used to evaluate models’ true performance. These results factor into decisions about whether a model may be deployed, for example due to regulatory compliance requirements, or the needs of downstream users. But because real-world datasets have noisy test splits, measurements may not accurately reflect the true performance of a model.</p>
+<p>We show that label errors in test splits generally results in measuring lower performance than the model would achieve in the real world. However, more challenging and realistic label errors can also cause the opposite effect. Models can learn erroneous features from errors in training data, and at higher levels of noise, this may enable “correct” predictions on erroneous test data to dominate and result in unfairly high performance, such as in Crowd Majority below.</p>
+<div class="column-body-outset">
+<div id="fig-multiplot-normal" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="img/multiplot-normal@2x.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;4: Noise in test splits generally reduces measurable performance, but has more complex effects for higher levels of more realistic noise.</figcaption><p></p>
+</figure>
+</div>
+</div>
+<p>We also show that using pre-trained language models to highlight likely errors for re-evaluation and cleaning moves measurable performance towards the true performance of the model.</p>
+<p><em>Takeaway: Given the prevalence of label errors in real-world datasets, typical error rates, and typical data cleaning effectiveness, we estimate that cleaning a small percentage of test split items can increase measurable performance by 1-2% in a large number of real-world NLP applications.</em></p>
+</section>
+<section id="validation-split-errors-cause-poor-model-selection" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="validation-split-errors-cause-poor-model-selection">Validation split errors cause poor model selection</h3>
+<p>Validation splits are used to select the best model from a set of candidate models, such as might be produced by a hyperparameter search process. Our experiments show that label errors in validation splits can damage final performance by selecting a model that performs best on noisy validation data, but not on real data. Correcting validation split errors generally selects a slightly better model, which results in a small improvement in final test performance, but does not fully correct the problem.</p>
+<div class="column-body-outset">
+<div id="tbl-cleanval-gain" class="anchored">
+<table class="table">
+<caption>Table&nbsp;2: End-to-end effects of label noise on task performance, as evaluated on noisy, corrected, and clean validation and test data splits. True accuracy is measured on clean test sets, and measurable accuracy on noisy or corrected test sets. Rank is a relative measure of true accuracy; lower numerical ranks have higher accuracy. Corrections which improve or reduce performance metrics are highlighted in green or red, respectively. Metrics are evaluated on models trained on noisy data.</caption>
+<colgroup>
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Eval.</th>
+<th>Test Perf.</th>
+<th>I-5</th>
+<th>A-5</th>
+<th>T-5</th>
+<th>T-M</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Noisy</td>
+<td>Measurable</td>
+<td>90.1</td>
+<td>88.3</td>
+<td>89.3</td>
+<td>89.3</td>
+</tr>
+<tr class="even">
+<td>Noisy</td>
+<td>True</td>
+<td>94.2</td>
+<td>91.0</td>
+<td>92.8</td>
+<td>82.0</td>
+</tr>
+<tr class="odd">
+<td>Noisy</td>
+<td>Rank</td>
+<td>10</td>
+<td>1</td>
+<td>3</td>
+<td>10</td>
+</tr>
+<tr class="even">
+<td>Corr.</td>
+<td>Measurable</td>
+<td><span style="color: green;">95.1</span></td>
+<td><span style="color: green;">90.7</span></td>
+<td><span style="color: green;">92.9</span></td>
+<td><span style="color: green;">88.5</span></td>
+</tr>
+<tr class="odd">
+<td>Corr.</td>
+<td>True</td>
+<td><span style="color: green;">95.1</span></td>
+<td><span style="color: red;">90.8</span></td>
+<td><span style="color: green;">93.0</span></td>
+<td>82.0</td>
+</tr>
+<tr class="even">
+<td>Corr.</td>
+<td>Rank</td>
+<td><span style="color: green;">4</span></td>
+<td><span style="color: red;">5</span></td>
+<td><span style="color: green;">2</span></td>
+<td><span style="color: green;">8</span></td>
+</tr>
+<tr class="odd">
+<td>Clean</td>
+<td>True</td>
+<td>95.8</td>
+<td>91.0</td>
+<td>93.8</td>
+<td>82.1</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><em>Takeaway: Cleaning the validation split can slightly improve performance via better model selection.</em></p>
+</section>
+</section>
+<section id="sec-lnl" class="level2">
+<h2 class="anchored" data-anchor-id="sec-lnl">New challenges in Learning with Noisy Labels</h2>
+<p>Most research into Learning with Noisy Labels is conducted using simple artificial noise, as few datasets exist which contain real and known label errors. But simple artificial noise is no longer challenging; recent LNL analyses study conditions where up to 80% of labels are noised <span class="citation" data-cites="song2022survey">(<a href="#ref-song2022survey" role="doc-biblioref">Song et al. 2022</a>)</span>. New capabilities provided by the advent of modern deep learning allows us to attack more challenging problems in LNL.</p>
+<section id="artificial-noise-behaves-very-differently-to-real-and-human-originated-noise" class="level3">
+<h3 class="anchored" data-anchor-id="artificial-noise-behaves-very-differently-to-real-and-human-originated-noise">Artificial noise behaves very differently to real and human-originated noise</h3>
+<p>We find that the characteristics of artificial noise are very different to those of real noise, as verified using annotators on Mechanical Turk. Simultaneously, we show that human-originated noise is much more similar to real noise.</p>
+<p>When there is simple artificial noise, loss is high and models are robust because simple artificial noise permutes labels with no consideration for input text. This means they carry no erroneous features that models can learn. By comparison, real label errors are almost always related to input text <span class="citation" data-cites="plank2014linguistically">(<a href="#ref-plank2014linguistically" role="doc-biblioref">Plank, Hovy, and Søgaard 2014</a>)</span>.</p>
+<p>We believe human-originated noising may enable future advancements across multiple areas of LNL, supporting new tasks and metrics in areas such as the cost of human reannotation, estimation of dataset error, and mitigation of bias.</p>
+<p><em>Takeaways: LNL findings which only use simple artificial noise may not necessarily generalize to real label errors.</em></p>
+</section>
+<section id="evaluating-with-noisy-labels-is-as-challenging-as-learning-with-noisy-labels" class="level3">
+<h3 class="anchored" data-anchor-id="evaluating-with-noisy-labels-is-as-challenging-as-learning-with-noisy-labels">Evaluating with noisy labels is as challenging as learning with noisy labels</h3>
+<p>Validation label errors can affect reported model performance as much as training label errors. Therefore, when measuring model performance in the presence of label noise, you should use an <em>end-to-end</em> evaluation.</p>
+<p>Measure performance on <em>both</em> noisy and clean test data, to provide an estimate of how much performance might change as a result of label noise.</p>
+<p>When using validation data for model selection, take into account the fact that the validation data should also have label errors, and that robustness should be measured with respect not only to training, but also to validation data.</p>
+<p><em>Takeaway: Learning with Noisy Labels has been an active area of research. We can deepen our understanding by also studying Evaluating with Noisy Labels.</em></p>
+</section>
+</section>
+<section id="conclusions-and-future-work" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions-and-future-work">Conclusions and future work</h2>
+<p>We invite LNL researchers to examine the effects of human-originated label noise <a href="https://github.com/dcx/lnlfm">using our library</a>, and develop new benchmarks in LNL which use realistic label errors in an end-to-end format.</p>
+</section>
+<section id="references" class="level2">
+
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-abedjan2016detecting" class="csl-entry" role="doc-biblioentry">
+Abedjan, Ziawasch, Xu Chu, Dong Deng, Raul Castro Fernandez, Ihab F Ilyas, Mourad Ouzzani, Paolo Papotti, Michael Stonebraker, and Nan Tang. 2016. <span>“Detecting Data Errors: Where Are We and What Needs to Be Done?”</span> <em>Proceedings of the VLDB Endowment</em> 9 (12): 993–1004.
+</div>
+<div id="ref-northcutt2021pervasive" class="csl-entry" role="doc-biblioentry">
+Northcutt, Curtis G, Anish Athalye, and Jonas Mueller. 2021. <span>“Pervasive Label Errors in Test Sets Destabilize Machine Learning Benchmarks.”</span> <em>arXiv:2103.14749</em>.
+</div>
+<div id="ref-plank2014linguistically" class="csl-entry" role="doc-biblioentry">
+Plank, Barbara, Dirk Hovy, and Anders Søgaard. 2014. <span>“Linguistically Debatable or Just Plain Wrong?”</span> In <em>Proceedings of the 52nd Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers)</em>, 507–11.
+</div>
+<div id="ref-redman1998impact" class="csl-entry" role="doc-biblioentry">
+Redman, Thomas C. 1998. <span>“The Impact of Poor Data Quality on the Typical Enterprise.”</span> <em>Communications of the ACM</em> 41 (2): 79–82.
+</div>
+<div id="ref-rolnick2017deep" class="csl-entry" role="doc-biblioentry">
+Rolnick, David, Andreas Veit, Serge Belongie, and Nir Shavit. 2017. <span>“Deep Learning Is Robust to Massive Label Noise.”</span> <em>arXiv:1705.10694</em>.
+</div>
+<div id="ref-song2022survey" class="csl-entry" role="doc-biblioentry">
+Song, Hwanjun, Minseok Kim, Dongmin Park, Yooju Shin, and Jae-Gil Lee. 2022. <span>“Learning from Noisy Labels with Deep Neural Networks: A Survey.”</span> <em>IEEE Transactions on Neural Networks and Learning Systems</em>.
+</div>
+</div></section><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@article{chong*2022,
+  author = {Derek Chong* and Jenny Hong* and Christopher D. Manning},
+  title = {Detecting {Label} {Errors} by Using {Pre-Trained} {Language}
+    {Models}},
+  journal = {Proceedings of the 2022 conference on empirical methods in
+    natural language processing},
+  date = {2022-11-30},
+  url = {https://arxiv.org/abs/2205.12702},
+  doi = {pending},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-chong*2022" class="csl-entry quarto-appendix-citeas" role="doc-biblioentry">
+Derek Chong*, Jenny Hong*, and Christopher D. Manning. 2022.
+<span>“Detecting Label Errors by Using Pre-Trained Language
+Models.”</span> <em>Proceedings of the 2022 Conference on Empirical
+Methods in Natural Language Processing</em>, November. <a href="https://doi.org/pending">https://doi.org/pending</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
