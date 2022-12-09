@@ -1,6 +1,6 @@
 # Learning with Noisy Labels and Foundation Models
 
-This repo provides code and data related to [*Detecting Label Errors by using Pre-Trained Language Models*](https://nlp.stanford.edu/pubs/chong2022labelerrors.pdf) ([blog post](https://dcx.github.io/lnlfm/), [video summary](https://www.youtube.com/watch?v=Ed9inry6atQ)).
+This repo provides code and data related to [*Detecting Label Errors by using Pre-Trained Language Models*](https://preview.aclanthology.org/emnlp-22-ingestion/2022.emnlp-main.618/) ([blog post](https://dcx.github.io/lnlfm/), [video summary](https://www.youtube.com/watch?v=Ed9inry6atQ)).
 
 ## Citation
 
