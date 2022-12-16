@@ -157,10 +157,10 @@ div.csl-indent {
   <ul>
   <li><a href="#label-errors-can-be-detected-using-pre-trained-language-model-loss" id="toc-label-errors-can-be-detected-using-pre-trained-language-model-loss" class="nav-link active" data-scroll-target="#label-errors-can-be-detected-using-pre-trained-language-model-loss">Label errors can be detected using pre-trained language model loss</a></li>
   <li><a href="#models-are-far-less-robust-to-label-errors-than-previously-believed" id="toc-models-are-far-less-robust-to-label-errors-than-previously-believed" class="nav-link" data-scroll-target="#models-are-far-less-robust-to-label-errors-than-previously-believed">Models are far less robust to label errors than previously believed</a></li>
-  <li><a href="#sec-eval" id="toc-sec-eval" class="nav-link" data-scroll-target="#sec-eval">Validation label errors can harm performance more than training label errors</a>
+  <li><a href="#sec-eval" id="toc-sec-eval" class="nav-link" data-scroll-target="#sec-eval">Label errors in evaluation splits may harm performance more than in training splits</a>
   <ul class="collapse">
-  <li><a href="#test-split-errors-reduce-and-distort-measurable-performance" id="toc-test-split-errors-reduce-and-distort-measurable-performance" class="nav-link" data-scroll-target="#test-split-errors-reduce-and-distort-measurable-performance">Test split errors reduce and distort measurable performance</a></li>
-  <li><a href="#validation-split-errors-cause-poor-model-selection" id="toc-validation-split-errors-cause-poor-model-selection" class="nav-link" data-scroll-target="#validation-split-errors-cause-poor-model-selection">Validation split errors cause poor model selection</a></li>
+  <li><a href="#test-split-errors-may-reduce-and-distort-measurable-performance" id="toc-test-split-errors-may-reduce-and-distort-measurable-performance" class="nav-link" data-scroll-target="#test-split-errors-may-reduce-and-distort-measurable-performance">Test split errors may reduce and distort measurable performance</a></li>
+  <li><a href="#validation-split-errors-may-cause-poor-model-selection" id="toc-validation-split-errors-may-cause-poor-model-selection" class="nav-link" data-scroll-target="#validation-split-errors-may-cause-poor-model-selection">Validation split errors may cause poor model selection</a></li>
   </ul></li>
   <li><a href="#sec-lnl" id="toc-sec-lnl" class="nav-link" data-scroll-target="#sec-lnl">New challenges in Learning with Noisy Labels</a>
   <ul class="collapse">
@@ -188,7 +188,7 @@ div.csl-indent {
 <div class="column-page">
 <div id="tbl-errors" class="anchored">
 <table class="table">
-<caption>Table&nbsp;1: Examples of label errors detected in popular NLP benchmark datasets</caption>
+<caption>Table&nbsp;1: Examples of label errors detected in popular NLP benchmark datasets.</caption>
 <colgroup>
 <col style="width: 9%">
 <col style="width: 72%">
@@ -232,10 +232,11 @@ div.csl-indent {
 <p>Simply evaluating a small percentage of items in descending order of loss identifies a large proportion of label errors with high precision, and more effectively than both non-pre-trained baselines, and a more complex state-of-the-art error detection framework.</p>
 <p><em>Takeaway: Checking the high loss data points of a foundation model can be useful as a quick and easy data quality health check, or for more rigorous data cleansing.</em></p>
 </section>
-<section id="models-are-far-less-robust-to-label-errors-than-previously-believed" class="level2 page-columns page-full">
+<section id="models-are-far-less-robust-to-label-errors-than-previously-believed" class="level2">
 <h2 class="anchored" data-anchor-id="models-are-far-less-robust-to-label-errors-than-previously-believed">Models are far less robust to label errors than previously believed</h2>
-<p>Deep learning is thought to be robust to massive amounts of label noise. Models have been shown to achieve high accuracy in datasets with as many as a hundred noisy items for each clean item <span class="citation" data-cites="rolnick2017deep">(<a href="#ref-rolnick2017deep" role="doc-biblioref">Rolnick et al. 2017</a>)</span>, and research into learning with noisy labels focuses on label noise in the range of 20-80% <span class="citation" data-cites="song2022survey">(<a href="#ref-song2022survey" role="doc-biblioref">Song et al. 2022</a>)</span>. However, studies almost always use simple artificial noise, in which labels are randomly flipped with no regard to the input text.</p>
-<p>We revisit the question of model robustness using a new form of realistic, human-originated label noise, which takes advantage of latent human error that exists within crowdsourced datasets.</p>
+<p>Deep learning is thought to be robust to massive amounts of label noise. Models have been shown to achieve high accuracy in datasets with as many as a hundred noisy items for each clean item <span class="citation" data-cites="rolnick2017deep">(<a href="#ref-rolnick2017deep" role="doc-biblioref">Rolnick et al. 2017</a>)</span>, and research into learning with noisy labels focuses on label noise in the range of 20-80% <span class="citation" data-cites="song2022survey">(<a href="#ref-song2022survey" role="doc-biblioref">Song et al. 2022</a>)</span>.</p>
+<p>However, studies almost always use simple artificial noise, in which labels are randomly flipped with no regard to the input text. This is a very different scenario from real-world label errors, which are often caused by human error, and are often correlated with the input text.</p>
+<p>We revisit the question of model robustness using a new form of realistic, <em>human-originated</em> label noise, which takes advantage of latent human error that exists within crowdsourced datasets.</p>
 <div id="fig-holn" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="img/holn@2x.png" class="img-fluid figure-img"></p>
@@ -243,145 +244,107 @@ div.csl-indent {
 </figure>
 </div>
 <p>In contrast to previous findings, we show that performance very quickly decreases as the amount of realistic label noise increases. Models learn to reproduce patterns of human error from training data with as little as 5-15% label noise.</p>
-<div class="column-body-outset">
-<div id="fig-multiplot-clean" class="quarto-figure quarto-figure-center anchored">
+<div class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display">
+<div id="fig-robust" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="img/multiplot@2x.png" class="img-fluid figure-img"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;3: Models are robust to simple uniform or class-based label noise, but not more realistic forms of noise.</figcaption><p></p>
+<p><img src="index_files/figure-html/fig-robust-output-1.png" width="635" height="360" class="figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;3: Models are robust to random label noise, but not to more realistic and challenging forms of label noise.</figcaption><p></p>
 </figure>
+</div>
 </div>
 </div>
 <p>We developed three noising protocols, which each simulate a different class of label error. The protocols are described in detail in <a href="https://arxiv.org/abs/2205.12702">our paper</a>. For the most challenging class of noise, <em>Crowd Majority</em>, performance degradation was roughly linear with the amount of noise applied.</p>
 <p><em>Takeaway: Significant performance improvements can be achieved by cleaning noisy training datasets.</em></p>
 </section>
 <section id="sec-eval" class="level2 page-columns page-full">
-<h2 class="anchored" data-anchor-id="sec-eval">Validation label errors can harm performance more than training label errors</h2>
+<h2 class="anchored" data-anchor-id="sec-eval">Label errors in evaluation splits may harm performance more than in training splits</h2>
 <p>The majority of Learning with Noisy Labels research focuses on noise in training splits, and ignores noise in evaluation splits. The existence of a clean test split is usually assumed in order to fairly evaluate techniques for learning on noisy training data. However, recent work by <span class="citation" data-cites="northcutt2021pervasive">Northcutt, Athalye, and Mueller (<a href="#ref-northcutt2021pervasive" role="doc-biblioref">2021</a>)</span> calls attention to this gap, finding that the test splits of many popular ML benchmark datasets contain label errors, and that these errors destabilize benchmark performance.</p>
 <p>We show that noise in test and validation splits has several harmful effects on model performance.</p>
-<section id="test-split-errors-reduce-and-distort-measurable-performance" class="level3 page-columns page-full">
-<h3 class="anchored" data-anchor-id="test-split-errors-reduce-and-distort-measurable-performance">Test split errors reduce and distort measurable performance</h3>
+<section id="test-split-errors-may-reduce-and-distort-measurable-performance" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="test-split-errors-may-reduce-and-distort-measurable-performance">Test split errors may reduce and distort measurable performance</h3>
 <p>Test splits are used to evaluate models’ true performance. These results factor into decisions about whether a model may be deployed, for example due to regulatory compliance requirements, or the needs of downstream users. But because real-world datasets have noisy test splits, measurements may not accurately reflect the true performance of a model.</p>
-<p>We show that label errors in test splits generally result in measuring lower performance than the model would achieve in the real world. However, more challenging and realistic label errors can also cause the opposite effect. Models can learn erroneous features from errors in training data, and at higher levels of noise, this may enable “correct” predictions on erroneous test data to dominate and result in unfairly high performance, such as in Crowd Majority below.</p>
+<p>We show that label errors in test splits generally result in measuring lower performance than the model would achieve in the real world. However, more challenging and realistic label errors may also have the opposite effect. Because models are learning erroneous features from systematic errors in training data, this may enable “correct” predictions on test data that contains the same errors. At higher levels of noise, this may result in measuring higher performance than the model would achieve in the real world (such as in Crowd Majority below).</p>
 <div class="column-body-outset">
 <div id="fig-multiplot-normal" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="img/multiplot-normal@2x.png" class="img-fluid figure-img"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;4: Noise in test splits generally reduces measurable performance, but has more complex effects for higher levels of more realistic noise.</figcaption><p></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;4: Noise in test splits generally reduces measurable performance (i.e.&nbsp;performance on a test set which also contains noise), but has more complex effects for higher levels of more realistic noise.</figcaption><p></p>
 </figure>
 </div>
 </div>
 <p>We also show that using pre-trained language models to highlight likely errors for re-evaluation and cleaning moves measurable performance towards the true performance of the model.</p>
 <p><em>Takeaway: Given the prevalence of label errors in real-world datasets, typical error rates, and typical data cleaning effectiveness, we estimate that cleaning a small percentage of test split items can increase measurable performance by 1-2% in a large number of real-world NLP applications.</em></p>
 </section>
-<section id="validation-split-errors-cause-poor-model-selection" class="level3 page-columns page-full">
-<h3 class="anchored" data-anchor-id="validation-split-errors-cause-poor-model-selection">Validation split errors cause poor model selection</h3>
-<p>Validation splits are used to select the best model from a set of candidate models, such as might be produced by a hyperparameter search process. Our experiments show that label errors in validation splits can damage final performance by selecting a model that performs best on noisy validation data, but not on real data. Correcting validation split errors generally selects a slightly better model, which results in a small improvement in final test performance, but does not fully correct the problem.</p>
-<div class="column-body-outset">
+<section id="validation-split-errors-may-cause-poor-model-selection" class="level3">
+<h3 class="anchored" data-anchor-id="validation-split-errors-may-cause-poor-model-selection">Validation split errors may cause poor model selection</h3>
+<p>Validation splits are used to select the best model from a set of candidate models, such as might be produced by a hyperparameter search process. Our experiments show that label errors in validation splits can damage final performance by selecting a model that performs best on noisy validation data, but not on real data.</p>
+<p>Using a validation split which has been corrected by re-evaluating the high loss items generally selects a slightly better model, which results in a small improvement in final test performance, but does not fully correct the problem.</p>
 <div id="tbl-cleanval-gain" class="anchored">
 <table class="table">
-<caption>Table&nbsp;2: End-to-end effects of label noise on task performance, as evaluated on noisy, corrected, and clean validation and test data splits. True accuracy is measured on clean test sets, and measurable accuracy on noisy or corrected test sets. Rank is a relative measure of true accuracy; lower numerical ranks have higher accuracy. Corrections which improve or reduce performance metrics are highlighted in green or red, respectively. Metrics are evaluated on models trained on noisy data.</caption>
+<caption>Table&nbsp;2: Selecting a model using noisy validation data can further damage final performance. In this example, the model selected using a noisy validation set (from a set of 25 candidate models trained within a hyperparameter sweep, here using IMDB noised at 5%) performed notably worse than the models which would have been selected using corrected or clean validation sets.</caption>
 <colgroup>
-<col style="width: 16%">
-<col style="width: 16%">
-<col style="width: 16%">
-<col style="width: 16%">
-<col style="width: 16%">
-<col style="width: 16%">
+<col style="width: 45%">
+<col style="width: 27%">
+<col style="width: 27%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Eval.</th>
-<th>Test Perf.</th>
-<th>I-5</th>
-<th>A-5</th>
-<th>T-5</th>
-<th>T-M</th>
+<th>Model Selected Using</th>
+<th style="text-align: center;">True Test Accuracy</th>
+<th style="text-align: center;">True Model Rank</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Noisy</td>
-<td>Measurable</td>
-<td>90.1</td>
-<td>88.3</td>
-<td>89.3</td>
-<td>89.3</td>
+<td>Noisy Validation Set</td>
+<td style="text-align: center;"><span style="color: red;">94.2</span></td>
+<td style="text-align: center;"><span style="color: red;">10</span></td>
 </tr>
 <tr class="even">
-<td>Noisy</td>
-<td>True</td>
-<td>94.2</td>
-<td>91.0</td>
-<td>92.8</td>
-<td>82.0</td>
+<td>Corrected Noisy Validation Set</td>
+<td style="text-align: center;"><span style="color: green;">95.1</span></td>
+<td style="text-align: center;"><span style="color: green;">4</span></td>
 </tr>
 <tr class="odd">
-<td>Noisy</td>
-<td>Rank</td>
-<td>10</td>
-<td>1</td>
-<td>3</td>
-<td>10</td>
-</tr>
-<tr class="even">
-<td>Corr.</td>
-<td>Measurable</td>
-<td><span style="color: green;">95.1</span></td>
-<td><span style="color: green;">90.7</span></td>
-<td><span style="color: green;">92.9</span></td>
-<td><span style="color: green;">88.5</span></td>
-</tr>
-<tr class="odd">
-<td>Corr.</td>
-<td>True</td>
-<td><span style="color: green;">95.1</span></td>
-<td><span style="color: red;">90.8</span></td>
-<td><span style="color: green;">93.0</span></td>
-<td>82.0</td>
-</tr>
-<tr class="even">
-<td>Corr.</td>
-<td>Rank</td>
-<td><span style="color: green;">4</span></td>
-<td><span style="color: red;">5</span></td>
-<td><span style="color: green;">2</span></td>
-<td><span style="color: green;">8</span></td>
-</tr>
-<tr class="odd">
-<td>Clean</td>
-<td>True</td>
-<td>95.8</td>
-<td>91.0</td>
-<td>93.8</td>
-<td>82.1</td>
+<td>Clean Validation Set</td>
+<td style="text-align: center;"><span style="color: green;"><em>95.8</em></span></td>
+<td style="text-align: center;"><span style="color: green;"><em>1</em></span></td>
 </tr>
 </tbody>
 </table>
 </div>
-</div>
 <p><em>Takeaway: Cleaning the validation split can slightly improve performance via better model selection.</em></p>
 </section>
 </section>
-<section id="sec-lnl" class="level2">
+<section id="sec-lnl" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-lnl">New challenges in Learning with Noisy Labels</h2>
-<p>Most research into Learning with Noisy Labels is conducted using simple artificial noise, as few datasets exist which contain real and known label errors. But simple artificial noise is no longer challenging; recent LNL analyses study conditions where up to 80% of labels are noised <span class="citation" data-cites="song2022survey">(<a href="#ref-song2022survey" role="doc-biblioref">Song et al. 2022</a>)</span>. New capabilities provided by the advent of modern deep learning allows us to attack more challenging problems in LNL.</p>
-<section id="artificial-noise-behaves-very-differently-to-real-and-human-originated-noise" class="level3">
+<p>Most research into Learning with Noisy Labels has been conducted using simple artificial noise, as very few datasets exist which contain real and known label errors. Given the advent of modern deep learning, human-originated label noise may enable multiple new and challenging research directions in LNL, in areas such as benchmarking, reannotation cost-efficiency, estimation of dataset error, and mitigation of bias.</p>
+<section id="artificial-noise-behaves-very-differently-to-real-and-human-originated-noise" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="artificial-noise-behaves-very-differently-to-real-and-human-originated-noise">Artificial noise behaves very differently to real and human-originated noise</h3>
-<p>We find that the characteristics of artificial noise are very different to those of real noise, as verified using annotators on Mechanical Turk. Simultaneously, we show that human-originated noise is much more similar to real noise.</p>
+<p>We find that the distributions of losses of artificial noise are very different to those of real label errors (which were verified using annotators on Mechanical Turk). In contrast, we show that the loss distributions of human-originated noise closely resemble those of real label errors.</p>
+<div class="column-body-outset">
+<div id="fig-losses" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="img/losses@2x.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;5: Simple artificial label noise exhibits high and distinctive loss distributions, whereas real label errors and human-originated label noise both exhibit similar loss distributions, which are more challenging to detect.</figcaption><p></p>
+</figure>
+</div>
+</div>
 <p>When there is simple artificial noise, loss is high and models are robust because simple artificial noise permutes labels with no consideration for input text. This means they carry no erroneous features that models can learn. By comparison, real label errors are almost always related to input text <span class="citation" data-cites="plank2014linguistically">(<a href="#ref-plank2014linguistically" role="doc-biblioref">Plank, Hovy, and Søgaard 2014</a>)</span>.</p>
-<p>We believe human-originated noising may enable future advancements across multiple areas of LNL, supporting new tasks and metrics in areas such as the cost of human reannotation, estimation of dataset error, and mitigation of bias.</p>
 <p><em>Takeaways: LNL findings which only use simple artificial noise may not necessarily generalize to real label errors.</em></p>
 </section>
 <section id="evaluating-with-noisy-labels-is-as-challenging-as-learning-with-noisy-labels" class="level3">
 <h3 class="anchored" data-anchor-id="evaluating-with-noisy-labels-is-as-challenging-as-learning-with-noisy-labels">Evaluating with noisy labels is as challenging as learning with noisy labels</h3>
-<p>Errors in validation and test splits can affect reported model performance as much as errors in training splits. As such, we argue that studies of label noise pay greater attention to evaluation splits, so as to address the full <em>end-to-end</em> impact of noisy labels as experienced in real applications.</p>
+<p>Errors in validation and test splits can affect reported model performance as much as errors in training splits. As such, we argue that studies of label noise should pay greater attention to evaluation splits, so as to address the full <em>end-to-end</em> impact of noisy labels as experienced in real applications.</p>
 <p>For example, results in LNL might be reported on <em>both</em> noisy and clean test data, to provide an estimate of how much performance might change as a result of label noise.</p>
 <p><em>Takeaway: Learning with Noisy Labels has been an active area of research. We can deepen our understanding by also studying Evaluating with Noisy Labels.</em></p>
 </section>
 </section>
 <section id="conclusions-and-future-work" class="level2">
 <h2 class="anchored" data-anchor-id="conclusions-and-future-work">Conclusions and future work</h2>
-<p>We invite LNL researchers to further examine the effects of realistic, human-originated label noise <a href="https://github.com/dcx/lnlfm">using our library</a>, and develop new benchmarks in LNL which use realistic label errors in an end-to-end format.</p>
+<p>Label noise can have far greater effects on performance than previously estimated, but in natural language tasks, pre-trained language models can be used to mitigate these effects by highlighting likely errors for re-evaluation and cleaning.</p>
+<p>We invite LNL researchers to further examine the effects of realistic, human-originated label noise <a href="https://github.com/dcx/lnlfm">using our data and code</a>, and develop new benchmarks in LNL which use realistic label errors in an end-to-end format.</p>
 </section>
 <section id="references" class="level2">
 
@@ -409,23 +372,7 @@ Rolnick, David, Andreas Veit, Serge Belongie, and Nir Shavit. 2017. <span>“Dee
 <div id="ref-song2022survey" class="csl-entry" role="doc-biblioentry">
 Song, Hwanjun, Minseok Kim, Dongmin Park, Yooju Shin, and Jae-Gil Lee. 2022. <span>“Learning from Noisy Labels with Deep Neural Networks: A Survey.”</span> <em>IEEE Transactions on Neural Networks and Learning Systems</em>.
 </div>
-</div></section><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@article{chong*2022,
-  author = {Derek Chong* and Jenny Hong* and Christopher D. Manning},
-  title = {Detecting {Label} {Errors} by Using {Pre-Trained} {Language}
-    {Models}},
-  journal = {Proceedings of the 2022 conference on empirical methods in
-    natural language processing},
-  date = {2022-11-30},
-  url = {https://arxiv.org/abs/2205.12702},
-  doi = {pending},
-  langid = {en}
-}
-</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-chong*2022" class="csl-entry quarto-appendix-citeas" role="doc-biblioentry">
-Derek Chong*, Jenny Hong*, and Christopher D. Manning. 2022.
-<span>“Detecting Label Errors by Using Pre-Trained Language
-Models.”</span> <em>Proceedings of the 2022 Conference on Empirical
-Methods in Natural Language Processing</em>, November. <a href="https://doi.org/pending">https://doi.org/pending</a>.
-</div></div></section></div></main> <!-- /main -->
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
